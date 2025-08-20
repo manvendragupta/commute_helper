@@ -410,6 +410,11 @@ function RouteTimeline({ steps }: { steps: any[] }) {
                           {step.transferTime}min transfer
                         </div>
                       )}
+                      {step.waitTimeAtStation !== undefined && step.waitTimeAtStation > 0 && (
+                        <div className="text-xs text-slate-500">
+                          +{step.waitTimeAtStation}min wait
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

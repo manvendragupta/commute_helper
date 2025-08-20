@@ -270,7 +270,8 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
           station: bestTransfer.station,
           platform: '1',
           waitTime: bestTransfer.dublinTrainTime,
-          departureTime: calculateDepartureTime(bestTransfer.dublinTrainTime)
+          departureTime: calculateDepartureTime(bestTransfer.dublinTrainTime),
+          waitTimeAtStation: Math.max(0, bestTransfer.dublinTrainTime - bestTransfer.arrivalTimeAtStation - TRANSFER_BUFFER)
         }
       ]
     };
