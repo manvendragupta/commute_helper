@@ -34,9 +34,14 @@ export default function Home() {
     retry: 2
   });
 
-  const allTrains = embarcaderoData ? processAllTrains(embarcaderoData) : { dublinTrains: [], otherTrains: [] };
+  const allTrains = embarcaderoData ? processAllTrains(embarcaderoData) : { 
+    dublinTrains: [], 
+    towardsSFTrains: [], 
+    awayFromSFTrains: [] 
+  };
   const directTrains = allTrains.dublinTrains;
-  const otherTrains = allTrains.otherTrains;
+  const towardsSFTrains = allTrains.towardsSFTrains;
+  const awayFromSFTrains = allTrains.awayFromSFTrains;
   const isLoading = isLoadingEmbarcadero || isLoadingRecommendation;
   const hasError = embarcaderoError || recommendationError;
 
@@ -223,30 +228,70 @@ export default function Home() {
                   <Info size={14} className="mr-1" />
                   Other Directions
                 </h4>
+                
                 {isLoading ? (
                   <div className="space-y-2">
-                    {[1, 2].map((i) => (
+                    {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="h-8 bg-slate-100 rounded animate-pulse"></div>
                     ))}
                   </div>
-                ) : otherTrains.slice(0, 4).map((train, index) => (
-                  <div key={index} className="mb-2 last:mb-0">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
-                        <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Towards SF City */}
+                    {towardsSFTrains.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                          → SF City
+                        </h5>
+                        {towardsSFTrains.slice(0, 2).map((train, index) => (
+                          <div key={`sf-${index}`} className="mb-2 last:mb-0">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
+                                <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-slate-800">
+                                  {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
+                                </div>
+                                <div className="text-slate-400 text-xs">
+                                  {calculateDepartureTime(train.minutes)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium text-slate-800">
-                          {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
-                        </div>
-                        <div className="text-slate-400 text-xs">
-                          {calculateDepartureTime(train.minutes)}
-                        </div>
+                    )}
+
+                    {/* Away from SF City */}
+                    {awayFromSFTrains.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                          ← Away from SF
+                        </h5>
+                        {awayFromSFTrains.slice(0, 2).map((train, index) => (
+                          <div key={`away-${index}`} className="mb-2 last:mb-0">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
+                                <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-slate-800">
+                                  {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
+                                </div>
+                                <div className="text-slate-400 text-xs">
+                                  {calculateDepartureTime(train.minutes)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
           </div>

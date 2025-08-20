@@ -69,12 +69,20 @@ export function calculateDepartureTime(minutes: number): string {
 
 export function processAllTrains(stationData: BartStationData): { 
   dublinTrains: ProcessedTrain[];
-  otherTrains: ProcessedTrain[];
+  towardsSFTrains: ProcessedTrain[];
+  awayFromSFTrains: ProcessedTrain[];
 } {
-  if (!stationData.etd) return { dublinTrains: [], otherTrains: [] };
+  if (!stationData.etd) return { dublinTrains: [], towardsSFTrains: [], awayFromSFTrains: [] };
 
   const dublinTrains: ProcessedTrain[] = [];
-  const otherTrains: ProcessedTrain[] = [];
+  const towardsSFTrains: ProcessedTrain[] = [];
+  const awayFromSFTrains: ProcessedTrain[] = [];
+
+  // Destinations heading towards SF city center
+  const towardsSFDestinations = ['Montgomery', 'Powell', 'Civic Center', '16th St Mission', '24th St Mission', 'Glen Park'];
+  
+  // Destinations heading away from SF city
+  const awayFromSFDestinations = ['Daly City', 'Colma', 'South San Francisco', 'San Bruno', 'Millbrae', 'SFO', 'Richmond', 'El Cerrito del Norte', 'El Cerrito Plaza', 'North Berkeley', 'Berkeley', 'Ashby', 'MacArthur', 'Rockridge', 'Orinda', 'Lafayette', 'Walnut Creek', 'Pleasant Hill', 'Concord', 'North Concord', 'Pittsburg', 'Antioch'];
 
   stationData.etd.forEach(destination => {
     const isDublinPleasanton = ['Dublin', 'Pleasanton'].some(target => 
@@ -99,13 +107,22 @@ export function processAllTrains(stationData: BartStationData): {
       if (isDublinPleasanton) {
         dublinTrains.push(train);
       } else {
-        otherTrains.push(train);
+        const isTowardsSF = towardsSFDestinations.some(sfDest => 
+          destination.destination.includes(sfDest)
+        );
+        
+        if (isTowardsSF) {
+          towardsSFTrains.push(train);
+        } else {
+          awayFromSFTrains.push(train);
+        }
       }
     });
   });
 
   return {
     dublinTrains: dublinTrains.sort((a, b) => a.minutes - b.minutes),
-    otherTrains: otherTrains.sort((a, b) => a.minutes - b.minutes)
+    towardsSFTrains: towardsSFTrains.sort((a, b) => a.minutes - b.minutes),
+    awayFromSFTrains: awayFromSFTrains.sort((a, b) => a.minutes - b.minutes)
   };
 }

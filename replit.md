@@ -30,3 +30,6 @@ A smart BART commute app that optimizes routes to Dublin/Pleasanton by comparing
 ## Recent Changes
 - Initial project setup and planning (2025-08-20)
 - Removed complex routing logic per user feedback to focus on core functionality
+- Added departure times to all train displays and route recommendations (2025-08-20)
+- Created sidebar with trains categorized by direction: "→ SF City" and "← Away from SF" (2025-08-20)
+- Implemented responsive layout with desktop sidebar and mobile-first design
