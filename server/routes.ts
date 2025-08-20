@@ -29,7 +29,8 @@ function calculateDepartureTime(minutes: number): string {
   return departureTime.toLocaleTimeString('en-US', { 
     hour: 'numeric', 
     minute: '2-digit',
-    hour12: false 
+    hour12: false,
+    timeZone: 'America/Los_Angeles'
   });
 }
 

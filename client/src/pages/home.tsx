@@ -52,7 +52,8 @@ export default function Home() {
       const timeString = now.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
+        timeZone: 'America/Los_Angeles'
       });
       setLastUpdated(timeString);
     };
