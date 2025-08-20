@@ -136,70 +136,144 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto p-4">
         <div className="space-y-4">
-          {/* Status Banner */}
-          {getStatusBanner()}
+            {/* Status Banner */}
+            {getStatusBanner()}
 
-          {/* Visual Route Timeline */}
-          {recommendation && !hasError && (
-            <Card className="overflow-hidden">
-              <div className="bg-gradient-to-r from-bart-blue to-blue-600 p-3 text-white">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">
-                    {recommendation.type === 'transfer' ? 'Recommended Route' : 'Direct Route'}
-                  </h2>
-                  <div className="text-right">
-                    <div className="text-xl font-bold" data-testid="text-total-time">
-                      {recommendation.totalTime}min
+            {/* Visual Route Timeline */}
+            {recommendation && !hasError && (
+              <Card className="overflow-hidden">
+                <div className="bg-gradient-to-r from-bart-blue to-blue-600 p-3 text-white">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">
+                      {recommendation.type === 'transfer' ? 'Recommended Route' : 'Direct Route'}
+                    </h2>
+                    <div className="text-right">
+                      <div className="text-xl font-bold" data-testid="text-total-time">
+                        {recommendation.totalTime}min
+                      </div>
+                      {recommendation.timeSaved && (
+                        <div className="text-blue-100 text-xs">Save {recommendation.timeSaved}min</div>
+                      )}
                     </div>
-                    {recommendation.timeSaved && (
-                      <div className="text-blue-100 text-xs">Save {recommendation.timeSaved}min</div>
-                    )}
                   </div>
                 </div>
-              </div>
-              <CardContent className="p-4">
-                <RouteTimeline steps={recommendation.steps} />
+                <CardContent className="p-4">
+                  <RouteTimeline steps={recommendation.steps} />
+                </CardContent>
+              </Card>
+            )}
+
+        {/* Direct Trains Section */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-slate-900">Direct from Embarcadero</h3>
+          
+          {isLoading ? (
+            <LoadingSkeleton />
+          ) : hasError ? (
+            <Card>
+              <CardContent className="p-4 text-center">
+                <AlertCircle className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+                <p className="text-slate-600">Unable to load train information</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRefresh} 
+                  className="mt-2"
+                  data-testid="button-retry"
+                >
+                  Try Again
+                </Button>
               </CardContent>
             </Card>
+          ) : directTrains.length === 0 ? (
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Clock className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+                <p className="text-slate-600">No Dublin/Pleasanton trains scheduled</p>
+              </CardContent>
+            </Card>
+          ) : (
+            directTrains.slice(0, 5).map((train, index) => (
+              <TrainCard key={index} train={train} />
+            ))
           )}
+            </div>
+          </div>
 
-          {/* Direct Trains Section */}
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-slate-900">Direct from Embarcadero</h3>
-            
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : hasError ? (
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <AlertCircle className="mx-auto h-8 w-8 text-slate-400 mb-2" />
-                  <p className="text-slate-600">Unable to load train information</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRefresh} 
-                    className="mt-2"
-                    data-testid="button-retry"
-                  >
-                    Try Again
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : directTrains.length === 0 ? (
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Info className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-                  <p className="text-slate-600">No direct trains available at the moment</p>
-                  <p className="text-xs text-slate-500 mt-1">Check back in a few minutes</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {directTrains.slice(0, 4).map((train, index) => (
-                  <TrainCard key={index} train={train} />
-                ))}
-              </div>
-            )}
+          {/* Sidebar - Other Direction Trains */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-20">
+              <CardContent className="p-3">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                  <Info size={14} className="mr-1" />
+                  Other Directions
+                </h4>
+                
+                {isLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-8 bg-slate-100 rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Towards SF City */}
+                    {towardsSFTrains.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                          → SF City
+                        </h5>
+                        {towardsSFTrains.slice(0, 2).map((train, index) => (
+                          <div key={`sf-${index}`} className="mb-2 last:mb-0">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
+                                <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-slate-800">
+                                  {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
+                                </div>
+                                <div className="text-slate-400 text-xs">
+                                  {calculateDepartureTime(train.minutes)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Away from SF City */}
+                    {awayFromSFTrains.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wide">
+                          ← Away from SF
+                        </h5>
+                        {awayFromSFTrains.slice(0, 2).map((train, index) => (
+                          <div key={`away-${index}`} className="mb-2 last:mb-0">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
+                                <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-slate-800">
+                                  {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
+                                </div>
+                                <div className="text-slate-400 text-xs">
+                                  {calculateDepartureTime(train.minutes)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
