@@ -332,14 +332,28 @@ function RouteTimeline({ steps }: { steps: any[] }) {
                     </div>
                   </div>
                   
-                  {step.waitTime !== undefined && (
+                  {(step.waitTime !== undefined || step.departureTime || step.arrivalTime) && (
                     <div className="text-right flex-shrink-0 ml-2">
-                      <div className="text-sm font-bold text-slate-900">
-                        {step.waitTime}min
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {calculateDepartureTime(step.waitTime)}
-                      </div>
+                      {step.waitTime !== undefined && (
+                        <>
+                          <div className="text-sm font-bold text-slate-900">
+                            {step.waitTime}min
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {step.departureTime || calculateDepartureTime(step.waitTime)}
+                          </div>
+                        </>
+                      )}
+                      {step.arrivalTime && (
+                        <div className="text-xs text-slate-500">
+                          Arrive {step.arrivalTime}
+                        </div>
+                      )}
+                      {step.transferTime && (
+                        <div className="text-xs text-amber-600">
+                          {step.transferTime}min transfer
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

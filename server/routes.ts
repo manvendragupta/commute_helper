@@ -22,6 +22,17 @@ const TRAVEL_TIMES = {
 
 const TRANSFER_BUFFER = 2; // 2 minute buffer for transfers
 
+// Helper function to calculate departure time
+function calculateDepartureTime(minutes: number): string {
+  const now = new Date();
+  const departureTime = new Date(now.getTime() + minutes * 60 * 1000);
+  return departureTime.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: false 
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Get real-time data for a specific station
@@ -185,6 +196,8 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     totalTime: number;
     reverseTrainTime: number;
     dublinTrainTime: number;
+    arrivalTimeAtStation: number;
+    travelTime: number;
   }> = [];
 
   const transferStations = [
@@ -219,7 +232,9 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
           code,
           totalTime: nextDublinAtStation.minutes,
           reverseTrainTime: reverseTrain.minutes,
-          dublinTrainTime: nextDublinAtStation.minutes
+          dublinTrainTime: nextDublinAtStation.minutes,
+          arrivalTimeAtStation,
+          travelTime
         });
       }
     });
@@ -230,27 +245,32 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
   
   if (bestTransfer && bestTransfer.totalTime < nextDublinTrain.minutes) {
     const timeSaved = nextDublinTrain.minutes - bestTransfer.totalTime;
+    const reverseTrainInfo = reverseTrains.find(t => t.minutes === bestTransfer.reverseTrainTime);
+    
     return {
       type: 'transfer',
       totalTime: bestTransfer.totalTime,
       timeSaved,
       steps: [
         {
-          action: `Take ${reverseTrains[0]?.destination || 'reverse'} train`,
+          action: `Take ${reverseTrainInfo?.destination || 'reverse'} train`,
           station: 'Embarcadero',
-          platform: reverseTrains[0]?.platform || '2',
-          waitTime: reverseTrains[0]?.minutes || 0
+          platform: reverseTrainInfo?.platform || '2',
+          waitTime: bestTransfer.reverseTrainTime,
+          departureTime: calculateDepartureTime(bestTransfer.reverseTrainTime)
         },
         {
-          action: 'Transfer',
+          action: 'Arrive and transfer',
           station: bestTransfer.station,
-          travelTime: TRANSFER_BUFFER
+          arrivalTime: calculateDepartureTime(bestTransfer.arrivalTimeAtStation),
+          transferTime: TRANSFER_BUFFER
         },
         {
-          action: 'Take Dublin/Pleasanton train',
+          action: 'Board Dublin/Pleasanton train',
           station: bestTransfer.station,
           platform: '1',
-          waitTime: bestTransfer.dublinTrainTime
+          waitTime: bestTransfer.dublinTrainTime,
+          departureTime: calculateDepartureTime(bestTransfer.dublinTrainTime)
         }
       ]
     };
