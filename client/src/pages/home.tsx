@@ -4,7 +4,7 @@ import { fetchStationData, fetchRouteRecommendation, processBartTrains, getBartL
 import { LoadingSkeleton } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Train, RefreshCcw, Route, Clock, ArrowRight, AlertCircle, Info } from "lucide-react";
+import { Train, RefreshCcw, Route, Clock, ArrowRight, AlertCircle, Info, MapPin, ArrowUpDown } from "lucide-react";
 import type { ProcessedTrain, BartStationData, RouteRecommendation } from "@/types/bart";
 
 export default function Home() {
@@ -129,59 +129,29 @@ export default function Home() {
             {/* Status Banner */}
             {getStatusBanner()}
 
-            {/* Recommendation Card */}
+            {/* Visual Route Timeline */}
             {recommendation && !hasError && (
-          <Card className="overflow-hidden">
-            <div className="bg-gradient-to-r from-bart-blue to-blue-600 p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {recommendation.type === 'transfer' ? 'Recommended Route' : 'Direct Route'}
-                  </h2>
-                  {recommendation.timeSaved && (
-                    <p className="text-blue-100 text-sm">Save {recommendation.timeSaved} minutes</p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold" data-testid="text-total-time">
-                    {recommendation.totalTime}
-                  </div>
-                  <div className="text-blue-100 text-xs">minutes</div>
-                </div>
-              </div>
-            </div>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {recommendation.steps.map((step: any, index: number) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      step.action.includes('reverse') || step.action.includes('Richmond') 
-                        ? 'bg-bart-red' 
-                        : 'bg-bart-blue'
-                    }`}></div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-slate-900">{step.action}</span>
-                        {step.platform && (
-                          <span className="text-xs text-slate-500">Platform {step.platform}</span>
-                        )}
+              <Card className="overflow-hidden">
+                <div className="bg-gradient-to-r from-bart-blue to-blue-600 p-3 text-white">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">
+                      {recommendation.type === 'transfer' ? 'Recommended Route' : 'Direct Route'}
+                    </h2>
+                    <div className="text-right">
+                      <div className="text-xl font-bold" data-testid="text-total-time">
+                        {recommendation.totalTime}min
                       </div>
-                      <p className="text-xs text-slate-600">
-                        {step.station}
-                        {step.waitTime !== undefined && ` (${step.waitTime} min)`}
-                        {step.waitTime !== undefined && (
-                          <span className="text-slate-400 ml-2">
-                            • Departs {calculateDepartureTime(step.waitTime)}
-                          </span>
-                        )}
-                      </p>
+                      {recommendation.timeSaved && (
+                        <div className="text-blue-100 text-xs">Save {recommendation.timeSaved}min</div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </div>
+                <CardContent className="p-4">
+                  <RouteTimeline steps={recommendation.steps} />
+                </CardContent>
+              </Card>
+            )}
 
         {/* Direct Trains Section */}
         <div className="space-y-3">
@@ -307,6 +277,85 @@ export default function Home() {
           Updates every 30 seconds
         </div>
       </footer>
+    </div>
+  );
+}
+
+function RouteTimeline({ steps }: { steps: any[] }) {
+  return (
+    <div className="relative">
+      <div className="space-y-6">
+        {steps.map((step: any, index: number) => {
+          const isLastStep = index === steps.length - 1;
+          const isTransfer = step.action.toLowerCase().includes('transfer');
+          const isReverse = step.action.includes('reverse') || step.action.includes('Richmond') || step.action.includes('Daly');
+          
+          return (
+            <div key={index} className="flex items-start space-x-4">
+              {/* Timeline connector */}
+              <div className="flex flex-col items-center">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  isTransfer 
+                    ? 'bg-amber-500 border-amber-500' 
+                    : isReverse 
+                      ? 'bg-bart-red border-bart-red' 
+                      : 'bg-bart-blue border-bart-blue'
+                }`}>
+                  {isTransfer ? (
+                    <ArrowUpDown size={8} className="text-white" />
+                  ) : (
+                    <Train size={8} className="text-white" />
+                  )}
+                </div>
+                {!isLastStep && (
+                  <div className={`w-0.5 h-12 mt-2 ${
+                    isReverse ? 'bg-bart-red' : 'bg-bart-blue'
+                  } opacity-30`}></div>
+                )}
+              </div>
+
+              {/* Step content */}
+              <div className="flex-1 pb-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium text-slate-900 text-sm">
+                      {step.action}
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <MapPin size={12} className="text-slate-400" />
+                      <span className="text-slate-600 text-sm">{step.station}</span>
+                      {step.platform && (
+                        <span className="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
+                          Platform {step.platform}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {step.waitTime !== undefined && (
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-slate-900">
+                        {step.waitTime}min
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {calculateDepartureTime(step.waitTime)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Travel time indicator */}
+                {!isLastStep && step.travelTime && (
+                  <div className="mt-2 text-xs text-slate-500 flex items-center">
+                    <Clock size={10} className="mr-1" />
+                    {step.travelTime} min travel time
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
