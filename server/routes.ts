@@ -217,7 +217,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
         transferOptions.push({
           station: name,
           code,
-          totalTime: transferTime,
+          totalTime: nextDublinAtStation.minutes,
           reverseTrainTime: reverseTrain.minutes,
           dublinTrainTime: nextDublinAtStation.minutes
         });
@@ -244,13 +244,13 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
         {
           action: 'Transfer',
           station: bestTransfer.station,
-          waitTime: TRANSFER_BUFFER
+          travelTime: TRANSFER_BUFFER
         },
         {
           action: 'Take Dublin/Pleasanton train',
           station: bestTransfer.station,
           platform: '1',
-          waitTime: bestTransfer.dublinTrainTime - bestTransfer.reverseTrainTime - TRANSFER_BUFFER
+          waitTime: bestTransfer.dublinTrainTime
         }
       ]
     };

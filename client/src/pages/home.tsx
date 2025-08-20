@@ -284,17 +284,17 @@ export default function Home() {
 function RouteTimeline({ steps }: { steps: any[] }) {
   return (
     <div className="relative">
-      <div className="space-y-6">
+      <div className="space-y-3">
         {steps.map((step: any, index: number) => {
           const isLastStep = index === steps.length - 1;
           const isTransfer = step.action.toLowerCase().includes('transfer');
           const isReverse = step.action.includes('reverse') || step.action.includes('Richmond') || step.action.includes('Daly');
           
           return (
-            <div key={index} className="flex items-start space-x-4">
+            <div key={index} className="flex items-center space-x-3">
               {/* Timeline connector */}
               <div className="flex flex-col items-center">
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
                   isTransfer 
                     ? 'bg-amber-500 border-amber-500' 
                     : isReverse 
@@ -302,39 +302,39 @@ function RouteTimeline({ steps }: { steps: any[] }) {
                       : 'bg-bart-blue border-bart-blue'
                 }`}>
                   {isTransfer ? (
-                    <ArrowUpDown size={8} className="text-white" />
+                    <ArrowUpDown size={6} className="text-white" />
                   ) : (
-                    <Train size={8} className="text-white" />
+                    <Train size={6} className="text-white" />
                   )}
                 </div>
                 {!isLastStep && (
-                  <div className={`w-0.5 h-12 mt-2 ${
+                  <div className={`w-0.5 h-6 mt-1 ${
                     isReverse ? 'bg-bart-red' : 'bg-bart-blue'
                   } opacity-30`}></div>
                 )}
               </div>
 
               {/* Step content */}
-              <div className="flex-1 pb-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium text-slate-900 text-sm">
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-center">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-slate-900 text-sm truncate">
                       {step.action}
                     </div>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <MapPin size={12} className="text-slate-400" />
-                      <span className="text-slate-600 text-sm">{step.station}</span>
+                    <div className="flex items-center space-x-1 mt-0.5">
+                      <MapPin size={10} className="text-slate-400 flex-shrink-0" />
+                      <span className="text-slate-600 text-xs truncate">{step.station}</span>
                       {step.platform && (
-                        <span className="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">
-                          Platform {step.platform}
+                        <span className="text-xs bg-slate-100 px-1 py-0.5 rounded text-slate-600 flex-shrink-0">
+                          P{step.platform}
                         </span>
                       )}
                     </div>
                   </div>
                   
                   {step.waitTime !== undefined && (
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-slate-900">
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <div className="text-sm font-bold text-slate-900">
                         {step.waitTime}min
                       </div>
                       <div className="text-xs text-slate-500">
@@ -343,14 +343,6 @@ function RouteTimeline({ steps }: { steps: any[] }) {
                     </div>
                   )}
                 </div>
-                
-                {/* Travel time indicator */}
-                {!isLastStep && step.travelTime && (
-                  <div className="mt-2 text-xs text-slate-500 flex items-center">
-                    <Clock size={10} className="mr-1" />
-                    {step.travelTime} min travel time
-                  </div>
-                )}
               </div>
             </div>
           );
