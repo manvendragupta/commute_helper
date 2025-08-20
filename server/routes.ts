@@ -100,6 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fetch data for all stations
       const stations = ['EMBR', 'MONT', 'POWL', 'CIVC', '16TH', '24TH'];
+      // console.log('Fetching station data for:', stations);
       const stationPromises = stations.map(async (code) => {
         try {
           const response = await axios.get(BART_API_BASE, {
@@ -218,7 +219,10 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
 
   transferStations.forEach(({ code, name, travelTime }) => {
     const stationInfo = stationData[code];
-    if (!stationInfo) return;
+    if (!stationInfo) {
+      // console.log(`No station data for ${code}`);
+      return;
+    }
 
     const dublinTrainsAtStation = stationInfo.etd
       .filter(etd => etd.destination.includes('Dublin') || etd.destination.includes('Pleasanton'))
@@ -229,6 +233,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       .sort((a, b) => a.minutes - b.minutes);
 
     const nextDublinAtStation = dublinTrainsAtStation[0];
+    // console.log(`${name} station: Dublin trains = ${dublinTrainsAtStation.map(t => t.minutes)}, next = ${nextDublinAtStation?.minutes}`);
     if (!nextDublinAtStation) return;
 
     // Check if we can catch this train with a reverse train
@@ -236,14 +241,18 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       const arrivalTimeAtStation = reverseTrain.minutes + travelTime;
       const transferTime = arrivalTimeAtStation + TRANSFER_BUFFER;
       
-      // Only consider this transfer if the overall route gives us enough time (reverse train departs after 9 min from now)
-      if (transferTime <= nextDublinAtStation.minutes && reverseTrain.minutes > COMMUTE_TO_STATION_TIME) {
+      // Find Dublin trains that depart AFTER our transfer time
+      const availableDublinTrains = dublinTrainsAtStation.filter(train => train.minutes >= transferTime);
+      const nextAvailableDublin = availableDublinTrains[0];
+      
+      // Only consider this transfer if there's a Dublin train available and reverse train departs after 9 min from now
+      if (nextAvailableDublin && reverseTrain.minutes > COMMUTE_TO_STATION_TIME) {
         transferOptions.push({
           station: name,
           code,
-          totalTime: nextDublinAtStation.minutes,
+          totalTime: nextAvailableDublin.minutes,
           reverseTrainTime: reverseTrain.minutes,
-          dublinTrainTime: nextDublinAtStation.minutes,
+          dublinTrainTime: nextAvailableDublin.minutes,
           arrivalTimeAtStation,
           travelTime
         });
@@ -253,6 +262,14 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
 
   // Find the fastest option
   const bestTransfer = transferOptions.sort((a, b) => a.totalTime - b.totalTime)[0];
+  
+  // console.log('Transfer analysis:', {
+  //   reverseTrainsCount: reverseTrains.length,
+  //   reverseTrainsAvailable: reverseTrains.filter(t => t.minutes > COMMUTE_TO_STATION_TIME),
+  //   transferOptionsFound: transferOptions.length,
+  //   nextDublinTrainTime: nextDublinTrain.minutes,
+  //   bestTransferTime: bestTransfer?.totalTime
+  // });
   
   if (bestTransfer && bestTransfer.totalTime < nextDublinTrain.minutes) {
     const timeSaved = nextDublinTrain.minutes - bestTransfer.totalTime;

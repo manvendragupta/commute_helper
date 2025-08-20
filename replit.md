@@ -33,3 +33,8 @@ A smart BART commute app that optimizes routes to Dublin/Pleasanton by comparing
 - Added departure times to all train displays and route recommendations (2025-08-20)
 - Created sidebar with trains categorized by direction: "→ SF City" and "← Away from SF" (2025-08-20)
 - Implemented responsive layout with desktop sidebar and mobile-first design
+- **MAJOR FIX**: Fixed transfer route optimization logic to properly find reverse-direction routes (2025-08-20)
+  - Routes now correctly compare direct vs transfer options across Montgomery, Powell, Civic Center, 16th St, and 24th St
+  - Transfer logic now finds Dublin trains departing AFTER transfer completion time
+  - App successfully recommends faster transfer routes when available
+- Updated UI to show ETA at Dublin/Pleasanton instead of time saved for clearer trip planning
