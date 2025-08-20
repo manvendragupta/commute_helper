@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { fetchStationData, fetchRouteRecommendation, processBartTrains, getBartLineColor } from "@/lib/bart-api";
+import { fetchStationData, fetchRouteRecommendation, processBartTrains, getBartLineColor, processAllTrains, calculateDepartureTime } from "@/lib/bart-api";
 import { LoadingSkeleton } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Train, RefreshCcw, Route, Clock, ArrowRight, AlertCircle } from "lucide-react";
-import type { ProcessedTrain } from "@/types/bart";
+import { Train, RefreshCcw, Route, Clock, ArrowRight, AlertCircle, Info } from "lucide-react";
+import type { ProcessedTrain, BartStationData, RouteRecommendation } from "@/types/bart";
 
 export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
@@ -16,7 +16,7 @@ export default function Home() {
     isLoading: isLoadingEmbarcadero, 
     error: embarcaderoError,
     refetch: refetchEmbarcadero 
-  } = useQuery({
+  } = useQuery<BartStationData>({
     queryKey: ['/api/bart/station/EMBR'],
     refetchInterval: 30000,
     retry: 2
@@ -28,13 +28,15 @@ export default function Home() {
     isLoading: isLoadingRecommendation,
     error: recommendationError,
     refetch: refetchRecommendation 
-  } = useQuery({
+  } = useQuery<RouteRecommendation>({
     queryKey: ['/api/bart/route-recommendation'],
     refetchInterval: 30000,
     retry: 2
   });
 
-  const directTrains = embarcaderoData ? processBartTrains(embarcaderoData) : [];
+  const allTrains = embarcaderoData ? processAllTrains(embarcaderoData) : { dublinTrains: [], otherTrains: [] };
+  const directTrains = allTrains.dublinTrains;
+  const otherTrains = allTrains.otherTrains;
   const isLoading = isLoadingEmbarcadero || isLoadingRecommendation;
   const hasError = embarcaderoError || recommendationError;
 
@@ -87,7 +89,7 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-md mx-auto px-4 py-3">
+        <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-bart-blue rounded-lg flex items-center justify-center">
@@ -115,12 +117,15 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto p-4 space-y-4">
-        {/* Status Banner */}
-        {getStatusBanner()}
+      <main className="max-w-6xl mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Status Banner */}
+            {getStatusBanner()}
 
-        {/* Recommendation Card */}
-        {recommendation && !hasError && (
+            {/* Recommendation Card */}
+            {recommendation && !hasError && (
           <Card className="overflow-hidden">
             <div className="bg-gradient-to-r from-bart-blue to-blue-600 p-4 text-white">
               <div className="flex items-center justify-between">
@@ -142,7 +147,7 @@ export default function Home() {
             </div>
             <CardContent className="p-4">
               <div className="space-y-3">
-                {recommendation.steps.map((step, index) => (
+                {recommendation.steps.map((step: any, index: number) => (
                   <div key={index} className="flex items-center space-x-3">
                     <div className={`w-2 h-2 rounded-full ${
                       step.action.includes('reverse') || step.action.includes('Richmond') 
@@ -159,6 +164,11 @@ export default function Home() {
                       <p className="text-xs text-slate-600">
                         {step.station}
                         {step.waitTime !== undefined && ` (${step.waitTime} min)`}
+                        {step.waitTime !== undefined && (
+                          <span className="text-slate-400 ml-2">
+                            • Departs {calculateDepartureTime(step.waitTime)}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -202,11 +212,49 @@ export default function Home() {
               <TrainCard key={index} train={train} />
             ))
           )}
+            </div>
+          </div>
+
+          {/* Sidebar - Other Direction Trains */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-20">
+              <CardContent className="p-3">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                  <Info size={14} className="mr-1" />
+                  Other Directions
+                </h4>
+                {isLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="h-8 bg-slate-100 rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                ) : otherTrains.slice(0, 4).map((train, index) => (
+                  <div key={index} className="mb-2 last:mb-0">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${getBartLineColor(train.color)}`}></div>
+                        <span className="text-slate-600 truncate max-w-16">{train.destination.split(' ')[0]}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-slate-800">
+                          {train.minutes === 0 ? 'Now' : `${train.minutes}m`}
+                        </div>
+                        <div className="text-slate-400 text-xs">
+                          {calculateDepartureTime(train.minutes)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="max-w-md mx-auto p-4 mt-8 text-center">
+      <footer className="max-w-6xl mx-auto p-4 mt-8 text-center">
         <div className="text-xs text-slate-500">
           Data provided by BART Legacy API
         </div>
@@ -243,6 +291,9 @@ function TrainCard({ train }: { train: ProcessedTrain }) {
             {train.minutes > 0 && (
               <div className="text-xs text-slate-500">min</div>
             )}
+            <div className="text-xs text-slate-400 mt-1" data-testid="text-departure-time">
+              {calculateDepartureTime(train.minutes)}
+            </div>
           </div>
         </div>
         <div className="mt-2 flex items-center space-x-2">

@@ -53,3 +53,59 @@ export function getBartLineColor(color: string): string {
   };
   return colorMap[color] || 'bg-bart-blue';
 }
+
+export function calculateDepartureTime(minutes: number): string {
+  if (minutes === 0) return 'Leaving';
+  
+  const now = new Date();
+  const departure = new Date(now.getTime() + minutes * 60000);
+  
+  return departure.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+export function processAllTrains(stationData: BartStationData): { 
+  dublinTrains: ProcessedTrain[];
+  otherTrains: ProcessedTrain[];
+} {
+  if (!stationData.etd) return { dublinTrains: [], otherTrains: [] };
+
+  const dublinTrains: ProcessedTrain[] = [];
+  const otherTrains: ProcessedTrain[] = [];
+
+  stationData.etd.forEach(destination => {
+    const isDublinPleasanton = ['Dublin', 'Pleasanton'].some(target => 
+      destination.destination.includes(target)
+    );
+
+    destination.estimate.forEach(estimate => {
+      const minutes = parseInt(estimate.minutes) || 0;
+      const cars = parseInt(estimate.length) || 10;
+      const delay = estimate.delay ? parseInt(estimate.delay) : 0;
+
+      const train: ProcessedTrain = {
+        destination: destination.destination,
+        minutes,
+        platform: estimate.platform || '1',
+        cars,
+        color: estimate.color || 'BLUE',
+        delay,
+        status: delay > 1 ? 'delayed' : 'on-time'
+      };
+
+      if (isDublinPleasanton) {
+        dublinTrains.push(train);
+      } else {
+        otherTrains.push(train);
+      }
+    });
+  });
+
+  return {
+    dublinTrains: dublinTrains.sort((a, b) => a.minutes - b.minutes),
+    otherTrains: otherTrains.sort((a, b) => a.minutes - b.minutes)
+  };
+}
