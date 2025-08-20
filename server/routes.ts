@@ -26,6 +26,7 @@ const TRAVEL_TIMES = {
 
 const TRANSFER_BUFFER = 2; // 2 minute buffer for transfers
 const COMMUTE_TO_STATION_TIME = 9; // 9 minutes from desk to Embarcadero platform
+const EMBR_TO_DUBLIN_TRAVEL_TIME = 45; // Approximate travel time from Embarcadero to Dublin/Pleasanton
 
 // Helper function to calculate departure time
 function calculateDepartureTime(minutes: number): string {
@@ -257,10 +258,12 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     const timeSaved = nextDublinTrain.minutes - bestTransfer.totalTime;
     const reverseTrainInfo = reverseTrains.find(t => t.minutes === bestTransfer.reverseTrainTime);
     
+    const etaAtDublin = bestTransfer.dublinTrainTime + EMBR_TO_DUBLIN_TRAVEL_TIME;
+    
     return {
       type: 'transfer',
       totalTime: bestTransfer.totalTime,
-      timeSaved,
+      etaAtDublin: calculateDepartureTime(etaAtDublin),
       steps: [
         {
           action: `Take ${reverseTrainInfo?.destination || 'reverse'} train`,
@@ -288,15 +291,19 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
   }
 
   // Direct route is best
+  const etaAtDublin = nextDublinTrain.minutes + EMBR_TO_DUBLIN_TRAVEL_TIME;
+  
   return {
     type: 'direct',
     totalTime: nextDublinTrain.minutes,
+    etaAtDublin: calculateDepartureTime(etaAtDublin),
     steps: [
       {
         action: 'Take direct Dublin/Pleasanton train',
         station: 'Embarcadero',
         platform: nextDublinTrain.platform,
-        waitTime: nextDublinTrain.minutes
+        waitTime: nextDublinTrain.minutes,
+        departureTime: calculateDepartureTime(nextDublinTrain.minutes)
       }
     ]
   };

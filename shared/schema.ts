@@ -30,11 +30,16 @@ export const routeRecommendationSchema = z.object({
   type: z.enum(['direct', 'transfer']),
   totalTime: z.number(),
   timeSaved: z.number().optional(),
+  etaAtDublin: z.string().optional(),
   steps: z.array(z.object({
     action: z.string(),
     station: z.string(),
     platform: z.string().optional(),
     waitTime: z.number().optional(),
+    departureTime: z.string().optional(),
+    arrivalTime: z.string().optional(),
+    transferTime: z.number().optional(),
+    waitTimeAtStation: z.number().optional(),
     travelTime: z.number().optional()
   }))
 });

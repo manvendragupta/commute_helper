@@ -149,12 +149,12 @@ export default function Home() {
                     {recommendation.type === 'transfer' ? 'Recommended Route' : 'Direct Route'}
                   </h2>
                   <div className="text-right">
-                    <div className="text-xl font-bold" data-testid="text-total-time">
-                      {recommendation.totalTime}min
+                    <div className="text-xs text-blue-100">
+                      ETA Dublin
                     </div>
-                    {recommendation.timeSaved && (
-                      <div className="text-blue-100 text-xs">Save {recommendation.timeSaved}min</div>
-                    )}
+                    <div className="text-xl font-bold" data-testid="text-eta-dublin">
+                      {recommendation.etaAtDublin || 'Calculating...'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -452,6 +452,9 @@ function TrainCard({ train }: { train: ProcessedTrain }) {
             </div>
             <div className="text-xs text-slate-500" data-testid="text-minutes">
               {train.minutes === 0 ? 'leaving now' : `in ${train.minutes} min`}
+            </div>
+            <div className="text-xs text-slate-400 mt-1">
+              ETA Dublin: {calculateDepartureTime(train.minutes + 45)}
             </div>
           </div>
         </div>
