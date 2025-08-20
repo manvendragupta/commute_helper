@@ -185,7 +185,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     };
   }
 
-  // Find reverse direction trains (towards Daly City/Millbrae) - only those departing more than 9 minutes from now
+  // Find reverse direction trains (towards Daly City/Millbrae) - include all trains, filter later based on 9-min rule
   const reverseTrains = embarcaderoData.etd
     .filter(etd => etd.destination.includes('Daly') || etd.destination.includes('Millbrae') || 
                    etd.destination.includes('Richmond') || etd.destination.includes('Fremont'))
@@ -194,7 +194,6 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       minutes: parseInt(est.minutes) || 999,
       platform: est.platform || '2'
     })))
-    .filter(train => train.minutes > COMMUTE_TO_STATION_TIME)
     .sort((a, b) => a.minutes - b.minutes);
 
   // Check transfer options at other stations
@@ -236,7 +235,8 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       const arrivalTimeAtStation = reverseTrain.minutes + travelTime;
       const transferTime = arrivalTimeAtStation + TRANSFER_BUFFER;
       
-      if (transferTime <= nextDublinAtStation.minutes) {
+      // Only consider this transfer if the overall route gives us enough time (reverse train departs after 9 min from now)
+      if (transferTime <= nextDublinAtStation.minutes && reverseTrain.minutes > COMMUTE_TO_STATION_TIME) {
         transferOptions.push({
           station: name,
           code,
