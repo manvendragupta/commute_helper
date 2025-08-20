@@ -25,6 +25,7 @@ const TRAVEL_TIMES = {
 };
 
 const TRANSFER_BUFFER = 2; // 2 minute buffer for transfers
+const COMMUTE_TO_STATION_TIME = 9; // 9 minutes from desk to Embarcadero platform
 
 // Helper function to calculate departure time
 function calculateDepartureTime(minutes: number): string {
@@ -163,7 +164,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     };
   }
 
-  // Find Dublin/Pleasanton trains at Embarcadero
+  // Find Dublin/Pleasanton trains at Embarcadero (only those departing more than 9 minutes from now)
   const dublinTrains = embarcaderoData.etd
     .filter(etd => etd.destination.includes('Dublin') || etd.destination.includes('Pleasanton'))
     .flatMap(etd => etd.estimate.map(est => ({
@@ -171,6 +172,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       minutes: parseInt(est.minutes) || 999,
       platform: est.platform || '1'
     })))
+    .filter(train => train.minutes > COMMUTE_TO_STATION_TIME)
     .sort((a, b) => a.minutes - b.minutes);
 
   const nextDublinTrain = dublinTrains[0];
@@ -179,11 +181,11 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     return {
       type: 'direct',
       totalTime: 999,
-      steps: [{ action: 'No Dublin/Pleasanton trains found', station: 'Embarcadero' }]
+      steps: [{ action: `No Dublin/Pleasanton trains departing more than ${COMMUTE_TO_STATION_TIME} minutes from now`, station: 'Embarcadero' }]
     };
   }
 
-  // Find reverse direction trains (towards Daly City/Millbrae)
+  // Find reverse direction trains (towards Daly City/Millbrae) - only those departing more than 9 minutes from now
   const reverseTrains = embarcaderoData.etd
     .filter(etd => etd.destination.includes('Daly') || etd.destination.includes('Millbrae') || 
                    etd.destination.includes('Richmond') || etd.destination.includes('Fremont'))
@@ -192,6 +194,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       minutes: parseInt(est.minutes) || 999,
       platform: est.platform || '2'
     })))
+    .filter(train => train.minutes > COMMUTE_TO_STATION_TIME)
     .sort((a, b) => a.minutes - b.minutes);
 
   // Check transfer options at other stations
