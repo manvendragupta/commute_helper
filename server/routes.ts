@@ -11,13 +11,17 @@ const STATION_CODES = {
   EMBR: 'Embarcadero',
   MONT: 'Montgomery',
   POWL: 'Powell',
-  CIVC: 'Civic Center'
+  CIVC: 'Civic Center',
+  '16TH': '16th St Mission',
+  '24TH': '24th St Mission'
 };
 
 const TRAVEL_TIMES = {
   'EMBR-MONT': 1,
   'MONT-POWL': 1, 
-  'POWL-CIVC': 2
+  'POWL-CIVC': 2,
+  'CIVC-16TH': 3,
+  '16TH-24TH': 2
 };
 
 const TRANSFER_BUFFER = 2; // 2 minute buffer for transfers
@@ -93,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Fetch data for all stations
-      const stations = ['EMBR', 'MONT', 'POWL', 'CIVC'];
+      const stations = ['EMBR', 'MONT', 'POWL', 'CIVC', '16TH', '24TH'];
       const stationPromises = stations.map(async (code) => {
         try {
           const response = await axios.get(BART_API_BASE, {
@@ -204,7 +208,9 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
   const transferStations = [
     { code: 'MONT', name: 'Montgomery', travelTime: 1 },
     { code: 'POWL', name: 'Powell', travelTime: 2 },
-    { code: 'CIVC', name: 'Civic Center', travelTime: 4 }
+    { code: 'CIVC', name: 'Civic Center', travelTime: 4 },
+    { code: '16TH', name: '16th St Mission', travelTime: 7 },
+    { code: '24TH', name: '24th St Mission', travelTime: 9 }
   ];
 
   transferStations.forEach(({ code, name, travelTime }) => {
