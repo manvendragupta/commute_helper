@@ -150,22 +150,33 @@ export default function Home() {
                   <Clock className="h-4 w-4 text-slate-600" />
                   <span className="text-sm font-medium text-slate-900">Time to reach Embarcadero</span>
                 </div>
-                <span className="text-lg font-semibold text-bart-blue" data-testid="text-travel-time">
+                <span className="text-lg font-semibold text-bart-blue transition-all duration-200 ease-out" data-testid="text-travel-time">
                   {travelTimeToEmbarcadero} min
                 </span>
               </div>
               <Slider
                 value={[travelTimeToEmbarcadero]}
-                onValueChange={(value) => setTravelTimeToEmbarcadero(value[0])}
+                onValueChange={(value) => setTravelTimeToEmbarcadero(Math.round(value[0]))}
                 min={1}
                 max={10}
                 step={1}
-                className="w-full"
+                className="w-full transition-all duration-200 ease-in-out"
                 data-testid="slider-travel-time"
               />
               <div className="flex justify-between text-xs text-slate-500 mt-2">
                 <span>1 min</span>
+                <span className="text-slate-400">5 min</span>
                 <span>10 min</span>
+              </div>
+              <div className="flex justify-between items-center mt-1 px-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((tick) => (
+                  <div 
+                    key={tick}
+                    className={`w-1 h-1 rounded-full transition-colors duration-200 ${
+                      tick <= travelTimeToEmbarcadero ? 'bg-bart-blue' : 'bg-slate-300'
+                    }`}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>
