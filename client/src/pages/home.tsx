@@ -266,11 +266,11 @@ export default function Home() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-slate-900">
-                              {calculateDepartureTime(train.minutes)}
-                            </div>
                             <div className="text-xs text-slate-500">
                               {train.minutes === 0 ? 'leaving now' : `in ${train.minutes} min`}
+                            </div>
+                            <div className="text-lg font-bold text-slate-900">
+                              {calculateDepartureTime(train.minutes)}
                             </div>
                           </div>
                         </div>
@@ -307,11 +307,11 @@ export default function Home() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-slate-900">
-                              {calculateDepartureTime(train.minutes)}
-                            </div>
                             <div className="text-xs text-slate-500">
                               {train.minutes === 0 ? 'leaving now' : `in ${train.minutes} min`}
+                            </div>
+                            <div className="text-lg font-bold text-slate-900">
+                              {calculateDepartureTime(train.minutes)}
                             </div>
                           </div>
                         </div>
@@ -393,21 +393,21 @@ function RouteTimeline({ steps }: { steps: any[] }) {
                     <div className="text-right flex-shrink-0 ml-2">
                       {step.waitTime !== undefined && (
                         <>
-                          <div className="text-lg font-bold text-slate-900">
-                            {step.departureTime || calculateDepartureTime(step.waitTime)}
-                          </div>
                           <div className="text-xs text-slate-500">
                             in {step.waitTime} min
+                          </div>
+                          <div className="text-lg font-bold text-slate-900">
+                            {step.departureTime || calculateDepartureTime(step.waitTime)}
                           </div>
                         </>
                       )}
                       {step.arrivalTime && (
                         <>
-                          <div className="text-lg font-bold text-slate-900">
-                            {step.arrivalTime}
-                          </div>
                           <div className="text-xs text-slate-500">
                             arrival time
+                          </div>
+                          <div className="text-lg font-bold text-slate-900">
+                            {step.arrivalTime}
                           </div>
                         </>
                       )}
@@ -447,14 +447,14 @@ function TrainCard({ train }: { train: ProcessedTrain }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xl font-bold text-slate-900" data-testid="text-departure-time">
-              {calculateDepartureTime(train.minutes)}
+            <div className="text-xs text-slate-400" data-testid="text-eta-dublin">
+              ETA Dublin: {calculateDepartureTime(train.minutes + 45)}
             </div>
             <div className="text-xs text-slate-500" data-testid="text-minutes">
               {train.minutes === 0 ? 'leaving now' : `in ${train.minutes} min`}
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              ETA Dublin: {calculateDepartureTime(train.minutes + 45)}
+            <div className="text-xl font-bold text-slate-900" data-testid="text-departure-time">
+              {calculateDepartureTime(train.minutes)}
             </div>
           </div>
         </div>

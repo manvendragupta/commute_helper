@@ -25,6 +25,10 @@ export interface RouteStep {
   station: string;
   platform?: string;
   waitTime?: number;
+  departureTime?: string;
+  arrivalTime?: string;
+  transferTime?: number;
+  waitTimeAtStation?: number;
   travelTime?: number;
 }
 
@@ -32,6 +36,7 @@ export interface RouteRecommendation {
   type: 'direct' | 'transfer';
   totalTime: number;
   timeSaved?: number;
+  etaAtDublin?: string;
   steps: RouteStep[];
 }
 
