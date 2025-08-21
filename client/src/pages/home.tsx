@@ -4,12 +4,14 @@ import { fetchStationData, fetchRouteRecommendation, processBartTrains, getBartL
 import { LoadingSkeleton } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { Train, RefreshCcw, Route, Clock, ArrowRight, AlertCircle, Info, MapPin, ArrowUpDown, Menu, X } from "lucide-react";
 import type { ProcessedTrain, BartStationData, RouteRecommendation } from "@/types/bart";
 
 export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [travelTimeToEmbarcadero, setTravelTimeToEmbarcadero] = useState<number>(5);
 
   // Fetch direct trains from Embarcadero
   const { 
@@ -30,7 +32,7 @@ export default function Home() {
     error: recommendationError,
     refetch: refetchRecommendation 
   } = useQuery<RouteRecommendation>({
-    queryKey: ['/api/bart/route-recommendation'],
+    queryKey: ['/api/bart/route-recommendation', travelTimeToEmbarcadero],
     refetchInterval: 30000,
     retry: 2
   });
@@ -139,6 +141,34 @@ export default function Home() {
         <div className="space-y-4">
           {/* Status Banner */}
           {getStatusBanner()}
+
+          {/* Travel Time Slider */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm font-medium text-slate-900">Time to reach Embarcadero</span>
+                </div>
+                <span className="text-lg font-semibold text-bart-blue" data-testid="text-travel-time">
+                  {travelTimeToEmbarcadero} min
+                </span>
+              </div>
+              <Slider
+                value={[travelTimeToEmbarcadero]}
+                onValueChange={(value) => setTravelTimeToEmbarcadero(value[0])}
+                min={1}
+                max={10}
+                step={1}
+                className="w-full"
+                data-testid="slider-travel-time"
+              />
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
+                <span>1 min</span>
+                <span>10 min</span>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Visual Route Timeline */}
           {recommendation && !hasError && (

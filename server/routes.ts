@@ -90,8 +90,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get optimized route recommendation
-  app.get("/api/bart/route-recommendation", async (req, res) => {
+  app.get("/api/bart/route-recommendation/:travelTime?", async (req, res) => {
     try {
+      // Get travel time from params or use default
+      const travelTimeToEmbarcadero = parseInt(req.params.travelTime || '') || COMMUTE_TO_STATION_TIME;
+      
       // Check cache first
       const cachedRecommendation = await storage.getCachedRouteRecommendation();
       if (cachedRecommendation) {
@@ -138,8 +141,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stationData[result.code] = result.data;
       });
 
+
+      
       // Calculate optimal route
-      const recommendation = calculateOptimalRoute(stationData);
+      const recommendation = calculateOptimalRoute(stationData, travelTimeToEmbarcadero);
       
       // Cache the recommendation
       await storage.cacheRouteRecommendation(recommendation);
@@ -155,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-function calculateOptimalRoute(stationData: Record<string, BartStationData | null>): RouteRecommendation {
+function calculateOptimalRoute(stationData: Record<string, BartStationData | null>, travelTimeToEmbarcadero: number = COMMUTE_TO_STATION_TIME): RouteRecommendation {
   const embarcaderoData = stationData.EMBR;
   
   if (!embarcaderoData) {
@@ -174,7 +179,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       minutes: parseInt(est.minutes) || 999,
       platform: est.platform || '1'
     })))
-    .filter(train => train.minutes > COMMUTE_TO_STATION_TIME)
+    .filter(train => train.minutes > travelTimeToEmbarcadero)
     .sort((a, b) => a.minutes - b.minutes);
 
   const nextDublinTrain = dublinTrains[0];
@@ -183,7 +188,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
     return {
       type: 'direct',
       totalTime: 999,
-      steps: [{ action: `No Dublin/Pleasanton trains departing more than ${COMMUTE_TO_STATION_TIME} minutes from now`, station: 'Embarcadero' }]
+      steps: [{ action: `No Dublin/Pleasanton trains departing more than ${travelTimeToEmbarcadero} minutes from now`, station: 'Embarcadero' }]
     };
   }
 
@@ -246,7 +251,7 @@ function calculateOptimalRoute(stationData: Record<string, BartStationData | nul
       const nextAvailableDublin = availableDublinTrains[0];
       
       // Only consider this transfer if there's a Dublin train available and reverse train departs after 9 min from now
-      if (nextAvailableDublin && reverseTrain.minutes > COMMUTE_TO_STATION_TIME) {
+      if (nextAvailableDublin && reverseTrain.minutes > travelTimeToEmbarcadero) {
         transferOptions.push({
           station: name,
           code,
