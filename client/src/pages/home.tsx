@@ -25,17 +25,20 @@ export default function Home() {
     retry: 2
   });
 
-  // Fetch route recommendation
+  // Fetch all route recommendations (pre-calculated for all travel times)
   const { 
-    data: recommendation, 
+    data: allRecommendations, 
     isLoading: isLoadingRecommendation,
     error: recommendationError,
     refetch: refetchRecommendation 
-  } = useQuery<RouteRecommendation>({
-    queryKey: ['/api/bart/route-recommendation', travelTimeToEmbarcadero],
+  } = useQuery<Record<string, RouteRecommendation>>({
+    queryKey: ['/api/bart/route-recommendations-all'],
     refetchInterval: 30000,
     retry: 2
   });
+
+  // Get the recommendation for current travel time
+  const recommendation = allRecommendations?.[travelTimeToEmbarcadero.toString()];
 
   const allTrains = embarcaderoData ? processAllTrains(embarcaderoData) : { 
     dublinTrains: [], 

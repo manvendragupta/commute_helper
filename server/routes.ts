@@ -156,6 +156,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all pre-calculated route recommendations for all travel times (1-10 minutes)
+  app.get("/api/bart/route-recommendations-all", async (req, res) => {
+    try {
+      // Check cache first
+      const cachedAllRecommendations = await storage.getCachedAllRouteRecommendations();
+      if (cachedAllRecommendations) {
+        return res.json(cachedAllRecommendations);
+      }
+
+      // Fetch data for all stations
+      const stations = ['EMBR', 'MONT', 'POWL', 'CIVC', '16TH', '24TH'];
+      const stationPromises = stations.map(async (code) => {
+        try {
+          const response = await axios.get(BART_API_BASE, {
+            params: {
+              cmd: 'etd',
+              orig: code,
+              key: BART_API_KEY,
+              json: 'y'
+            }
+          });
+          
+          const rawData = response.data;
+          if (!rawData.root || !rawData.root.station || rawData.root.station.length === 0) {
+            return { code, data: null };
+          }
+
+          return {
+            code,
+            data: {
+              station: rawData.root.station[0].name,
+              abbreviation: rawData.root.station[0].abbr,
+              etd: rawData.root.station[0].etd || []
+            }
+          };
+        } catch (error) {
+          console.error(`Error fetching data for ${code}:`, error);
+          return { code, data: null };
+        }
+      });
+
+      const stationResults = await Promise.all(stationPromises);
+      const stationData: Record<string, BartStationData | null> = {};
+      
+      stationResults.forEach(result => {
+        stationData[result.code] = result.data;
+      });
+
+      // Calculate recommendations for all travel times (1-10 minutes)
+      const allRecommendations: Record<string, RouteRecommendation> = {};
+      for (let travelTime = 1; travelTime <= 10; travelTime++) {
+        allRecommendations[travelTime.toString()] = calculateOptimalRoute(stationData, travelTime);
+      }
+      
+      // Cache all recommendations
+      await storage.cacheAllRouteRecommendations(allRecommendations);
+      
+      res.json(allRecommendations);
+    } catch (error) {
+      console.error('Error calculating all route recommendations:', error);
+      res.status(500).json({ error: "Failed to calculate route recommendations" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

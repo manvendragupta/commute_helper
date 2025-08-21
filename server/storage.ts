@@ -11,6 +11,8 @@ export interface IStorage {
   getCachedStationData(station: string): Promise<BartStationData | undefined>;
   cacheRouteRecommendation(data: RouteRecommendation, ttl?: number): Promise<void>;
   getCachedRouteRecommendation(): Promise<RouteRecommendation | undefined>;
+  cacheAllRouteRecommendations(data: Record<string, RouteRecommendation>, ttl?: number): Promise<void>;
+  getCachedAllRouteRecommendations(): Promise<Record<string, RouteRecommendation> | undefined>;
 }
 
 interface CacheItem<T> {
@@ -70,6 +72,24 @@ export class MemStorage implements IStorage {
 
   async getCachedRouteRecommendation(): Promise<RouteRecommendation | undefined> {
     const key = 'route_recommendation';
+    const item = this.cache.get(key);
+    
+    if (!item || Date.now() > item.expiresAt) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    
+    return item.data;
+  }
+
+  async cacheAllRouteRecommendations(data: Record<string, RouteRecommendation>, ttl = 30000): Promise<void> {
+    const key = 'all_route_recommendations';
+    const expiresAt = Date.now() + ttl;
+    this.cache.set(key, { data, expiresAt });
+  }
+
+  async getCachedAllRouteRecommendations(): Promise<Record<string, RouteRecommendation> | undefined> {
+    const key = 'all_route_recommendations';
     const item = this.cache.get(key);
     
     if (!item || Date.now() > item.expiresAt) {
