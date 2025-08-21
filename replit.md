@@ -38,3 +38,8 @@ A smart BART commute app that optimizes routes to Dublin/Pleasanton by comparing
   - Transfer logic now finds Dublin trains departing AFTER transfer completion time
   - App successfully recommends faster transfer routes when available
 - Updated UI to show ETA at Dublin/Pleasanton instead of time saved for clearer trip planning
+- **CONSISTENCY UPDATE**: Standardized time display order across all components (2025-08-21)
+  - TrainCard: Now shows ETA Dublin, time remaining, then actual departure time
+  - RouteTimeline: Shows time remaining, then actual time consistently
+  - Sidebar trains: Shows time remaining, then actual time
+  - Fixed TypeScript types to include missing RouteStep properties (departureTime, arrivalTime, transferTime)
