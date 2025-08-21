@@ -79,8 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         etd: rawData.root.station[0].etd || []
       };
 
-      // Cache the data
-      await storage.cacheStationData(stationCode, stationData);
+      // Cache the data for 15 seconds
+      await storage.cacheStationData(stationCode, stationData, 15000);
       
       res.json(stationData);
     } catch (error) {
@@ -146,8 +146,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate optimal route
       const recommendation = calculateOptimalRoute(stationData, travelTimeToEmbarcadero);
       
-      // Cache the recommendation
-      await storage.cacheRouteRecommendation(recommendation);
+      // Cache the recommendation for 15 seconds
+      await storage.cacheRouteRecommendation(recommendation, 15000);
       
       res.json(recommendation);
     } catch (error) {
@@ -210,8 +210,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allRecommendations[travelTime.toString()] = calculateOptimalRoute(stationData, travelTime);
       }
       
-      // Cache all recommendations
-      await storage.cacheAllRouteRecommendations(allRecommendations);
+      // Cache all recommendations for 15 seconds
+      await storage.cacheAllRouteRecommendations(allRecommendations, 15000);
       
       res.json(allRecommendations);
     } catch (error) {

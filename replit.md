@@ -43,3 +43,12 @@ A smart BART commute app that optimizes routes to Dublin/Pleasanton by comparing
   - RouteTimeline: Shows time remaining, then actual time consistently
   - Sidebar trains: Shows time remaining, then actual time
   - Fixed TypeScript types to include missing RouteStep properties (departureTime, arrivalTime, transferTime)
+- **TRAVEL TIME SLIDER**: Added dynamic travel time configuration (2025-08-21)
+  - 1-10 minute slider for time to reach Embarcadero station
+  - Pre-calculated route recommendations for all travel time values
+  - Instant updates when slider moves - no API delays
+  - Enhanced slider UI with visual tick marks and smooth animations
+- **API OPTIMIZATION**: Reduced BART API load with 15-second caching (2025-08-21)
+  - Reduced cache TTL from 30 seconds to 15 seconds
+  - Updated frontend refresh intervals to match cache duration
+  - More frequent updates while being respectful to BART API servers

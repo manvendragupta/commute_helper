@@ -21,7 +21,7 @@ export default function Home() {
     refetch: refetchEmbarcadero 
   } = useQuery<BartStationData>({
     queryKey: ['/api/bart/station/EMBR'],
-    refetchInterval: 30000,
+    refetchInterval: 15000,
     retry: 2
   });
 
@@ -33,7 +33,7 @@ export default function Home() {
     refetch: refetchRecommendation 
   } = useQuery<Record<string, RouteRecommendation>>({
     queryKey: ['/api/bart/route-recommendations-all'],
-    refetchInterval: 30000,
+    refetchInterval: 15000,
     retry: 2
   });
 
@@ -375,7 +375,7 @@ export default function Home() {
           Data provided by BART Legacy API
         </div>
         <div className="text-xs text-slate-400 mt-1">
-          Updates every 30 seconds
+          Updates every 15 seconds
         </div>
       </footer>
     </div>
